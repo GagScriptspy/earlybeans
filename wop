@@ -1,0 +1,39 @@
+local RS = game:GetService("ReplicatedStorage")
+local WS = workspace
+local UpdateService = RS:WaitForChild("Modules"):WaitForChild("UpdateService")
+
+local OLD_EVENTS = {
+    "CookingEvent","CookingEventModel","Event_Point","EventCraftingWorkBench","SeedEventCraftingWorkBench",
+    "TreeEvent","PortalEvent","SnowEvent","ArenaEvent","LavaEvent","RaceEvent","PuzzleEvent","WindEvent",
+    "SeaEvent","StormEvent","SpaceEvent","DesertEvent","JungleEvent","TowerEvent"
+}
+
+local function removeOldEvents()
+    for _, obj in ipairs(WS:GetDescendants()) do
+        if table.find(OLD_EVENTS, obj.Name) then
+            pcall(function() obj:Destroy() end)
+        end
+    end
+end
+
+local function ensureBeanstalk()
+    local existing = WS:FindFirstChild("BeanstalkEvent", true)
+    if not existing then
+        local src = UpdateService:FindFirstChild("BeanstalkEvent")
+        if src then
+            local clone = src:Clone()
+            clone.Parent = WS
+            return clone
+        end
+    end
+    return existing
+end
+
+removeOldEvents()
+ensureBeanstalk()
+
+WS.DescendantAdded:Connect(function(x)
+    if table.find(OLD_EVENTS, x.Name) then
+        task.defer(function() pcall(function() x:Destroy() end) end)
+    end
+end)
